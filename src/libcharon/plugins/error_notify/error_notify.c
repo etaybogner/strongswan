@@ -26,6 +26,8 @@
 #include <sys/un.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include<stdio.h>
+#include<time.h>
 
 /**
  * Connect to the daemon, return FD
@@ -76,6 +78,8 @@ int main(int argc, char *argv[])
 	error_notify_msg_t msg;
 	int s, len, total;
 	void *pos;
+    time_t tm;
+    char* ctime_no_newline;
 
 	s = make_connection();
 	if (s < 0)
@@ -99,8 +103,10 @@ int main(int argc, char *argv[])
 			total += len;
 			pos += len;
 		}
-		printf("%d %s %s %s %s\n",
-			   ntohl(msg.type), msg.name, msg.id, msg.ip, msg.str);
+        time(&tm); // ETAY
+        ctime_no_newline = strtok(ctime(&tm), "\n");
+		printf("%s: type=%d name=%s id=%s ip=%s str=%s\n",
+			   ctime_no_newline, ntohl(msg.type), msg.name, msg.id, msg.ip, msg.str);
 	}
 	close(s);
 	return 0;

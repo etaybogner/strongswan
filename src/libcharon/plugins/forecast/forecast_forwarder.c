@@ -207,7 +207,7 @@ CALLBACK(receive_casts, bool,
 		type = "broad";
 		memset(&addr.sll_addr, 0xFF, sizeof(addr.sll_addr));
 	}
-	DBG2(DBG_NET, "forecast intercepted packet: %H to %H", src, dst);
+	DBG3(DBG_NET, "forecast intercepted packet: %#H to %#H", src, dst);
 
 	/* find mark of originating tunnel */
 	enumerator = this->kernel.fc->create_enumerator(this->kernel.fc, FALSE);

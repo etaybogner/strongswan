@@ -158,6 +158,14 @@ enum alert_t {
 	ALERT_CERT_EXCEEDED_PATH_LEN,
 	/** Certificate rejected; other policy violation, certificate_t */
 	ALERT_CERT_POLICY_VIOLATION,
+#ifdef ETAY
+    /** received IKE message with invalid version, argument is message_t */
+    ALERT_INVALID_MAJOR_VERSION,
+    /** received proposals unacceptable argument is message_t */
+    ALERT_UNACCEPTABLE_PROPOSALS,
+    /** received proposals unacceptable argument is message_t */
+    ALERT_UNACCEPTABLE_DH_PROPOSAL,
+#endif
 };
 
 /**

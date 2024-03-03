@@ -858,9 +858,16 @@ METHOD(task_t, build_r, status_t,
 	if (this->proposal == NULL ||
 		this->other_nonce.len == 0 || this->my_nonce.len == 0)
 	{
+#ifndef ETAY
 		DBG1(DBG_IKE, "received proposals unacceptable");
 		message->add_notify(message, TRUE, NO_PROPOSAL_CHOSEN, chunk_empty);
 		return FAILED;
+#else
+		DBG0(DBG_IKE, "received proposals unacceptable. Ignoring");
+        charon->bus->alert(charon->bus, ALERT_UNACCEPTABLE_PROPOSALS, message);
+        return DESTROY_ME;
+
+#endif
 	}
 
 	/* check if we'd have to redirect the client */
@@ -883,8 +890,8 @@ METHOD(task_t, build_r, status_t,
 		!this->proposal->has_transform(this->proposal, KEY_EXCHANGE_METHOD,
 									   this->dh_group))
 	{
+#ifndef ETAY
 		uint16_t group;
-
 		if (this->proposal->get_algorithm(this->proposal, KEY_EXCHANGE_METHOD,
 										  &group, NULL))
 		{
@@ -902,6 +909,11 @@ METHOD(task_t, build_r, status_t,
 			message->add_notify(message, TRUE, NO_PROPOSAL_CHOSEN, chunk_empty);
 		}
 		return FAILED;
+#else /* ETAY */
+		DBG0(DBG_IKE, "no acceptable DH proposal found. Ignoring");
+        charon->bus->alert(charon->bus, ALERT_UNACCEPTABLE_DH_PROPOSAL, message);
+        return DESTROY_ME;
+#endif /* ETAY */
 	}
 
 	if (this->dh_failed)

@@ -536,7 +536,11 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 	message = message_create_from_packet(packet);
 	if (message->parse_header(message) != SUCCESS)
 	{
+#ifndef ETAY
 		DBG1(DBG_NET, "received invalid IKE header from %H - ignored", src);
+#else
+		DBG0(DBG_NET, "received invalid IKE header from %#H to %#H- ignored", src, dst);
+#endif
 		charon->bus->alert(charon->bus, ALERT_PARSE_ERROR_HEADER, message);
 		message->destroy(message);
 		return JOB_REQUEUE_DIRECT;
@@ -550,8 +554,10 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 			if (message->get_exchange_type(message) == IKE_SA_INIT &&
 				message->get_request(message))
 			{
+#ifndef ETAY
 				send_notify(message, IKEV1_MAJOR_VERSION, INFORMATIONAL_V1,
 							INVALID_MAJOR_VERSION, chunk_empty);
+#endif /* ETAY */
 				supported = FALSE;
 			}
 #endif /* USE_IKEV2 */
@@ -561,13 +567,16 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 			if (message->get_exchange_type(message) == ID_PROT ||
 				message->get_exchange_type(message) == AGGRESSIVE)
 			{
+#ifndef ETAY
 				send_notify(message, IKEV2_MAJOR_VERSION, INFORMATIONAL,
 							INVALID_MAJOR_VERSION, chunk_empty);
+#endif /* ETAY */
 				supported = FALSE;
 			}
 #endif /* USE_IKEV1 */
 			break;
 		default:
+#ifndef ETAY
 #ifdef USE_IKEV2
 			send_notify(message, IKEV2_MAJOR_VERSION,
 						message->get_exchange_type(message),
@@ -576,9 +585,11 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 			send_notify(message, IKEV1_MAJOR_VERSION, INFORMATIONAL_V1,
 						INVALID_MAJOR_VERSION, chunk_empty);
 #endif /* USE_IKEV1 */
+#endif /* ETAY */
 			supported = FALSE;
 			break;
 	}
+#ifndef ETAY
 	if (!supported)
 	{
 		DBG1(DBG_NET, "received unsupported IKE version %d.%d from %H, sending "
@@ -586,7 +597,18 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 			 message->get_minor_version(message), src);
 		message->destroy(message);
 		return JOB_REQUEUE_DIRECT;
-	}
+	} 
+#else /* ETAY */
+    if (!supported)
+    {
+        DBG0(DBG_NET, "received unsupported IKE version %d.%d from %#H to %#H, ignored "
+             , message->get_major_version(message),
+             message->get_minor_version(message), src, dst);
+        charon->bus->alert(charon->bus, ALERT_INVALID_MAJOR_VERSION, message);
+        message->destroy(message);
+        return JOB_REQUEUE_DIRECT;
+    } 
+#endif /* ETAY */
 	if (message->get_request(message) &&
 		message->get_exchange_type(message) == IKE_SA_INIT)
 	{

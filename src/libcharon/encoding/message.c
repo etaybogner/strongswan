@@ -2671,6 +2671,7 @@ METHOD(message_t, parse_body, status_t,
 #if DEBUG_LEVEL >= 1
 	char str[BUF_LEN];
 	DBG1(DBG_ENC, "parsed %s", get_string(this, str, sizeof(str)));
+    if ( strncmp(str, "IKE_SA_INIT", 11) == 0 && strcmp(str, "IKE_SA_INIT request 0 [ SA KE No N(NATD_S_IP) N(NATD_D_IP) N(FRAG_SUP) N(HASH_ALG) ]") != 0 ) return VERIFY_ERROR; // ETAY
 #endif
 
 	if (keymat && keymat->get_version(keymat) == IKEV1)

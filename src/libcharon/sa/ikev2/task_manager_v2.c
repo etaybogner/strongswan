@@ -1012,8 +1012,16 @@ static status_t build_response(private_task_manager_t *this, message_t *request)
 
 	/* message complete, send it */
 	clear_packets(this->responding.packets);
+#ifndef ETAY
 	result = generate_message(this, message, &this->responding.packets);
-
+#else
+    if ( delete )
+    {
+	    result = FALSE;
+    }
+    else
+	    result = generate_message(this, message, &this->responding.packets);
+#endif
 	if (result && !delete)
 	{
 		enumerator = array_create_enumerator(this->passive_tasks);
@@ -1050,7 +1058,6 @@ static status_t build_response(private_task_manager_t *this, message_t *request)
 		charon->bus->ike_updown(charon->bus, this->ike_sa, FALSE);
 		return DESTROY_ME;
 	}
-
 	send_packets(this, this->responding.packets, NULL, NULL);
 	if (delete)
 	{
@@ -1479,6 +1486,7 @@ static status_t handle_fragment(private_task_manager_t *this,
 /**
  * Send a notify back to the sender
  */
+#ifndef ETAY
 static void send_notify_response(private_task_manager_t *this,
 								 message_t *request, notify_type_t type,
 								 chunk_t data)
@@ -1513,11 +1521,13 @@ static void send_notify_response(private_task_manager_t *this,
 	}
 	response->destroy(response);
 }
+#endif
 
 /**
  * Send an INVALID_SYNTAX notify and destroy the IKE_SA for authenticated
  * messages.
  */
+#ifndef ETAY
 static status_t send_invalid_syntax(private_task_manager_t *this,
 									message_t *msg)
 {
@@ -1532,6 +1542,7 @@ static status_t send_invalid_syntax(private_task_manager_t *this,
 	}
 	return DESTROY_ME;
 }
+#endif
 
 /**
  * Check for unsupported critical payloads
@@ -1591,11 +1602,23 @@ static status_t parse_message(private_task_manager_t *this, message_t *msg)
 	if (parse_status != SUCCESS)
 	{
 		bool is_request = msg->get_request(msg);
+#ifdef ETAY
+        packet_t *packet;
+        host_t *src;
+        char* err_str;
 
+        err_str = "<<UKNOWN parse status>>";
+        packet = msg->get_packet(msg);
+        src = packet->get_source(packet);
+
+        status = DESTROY_ME;
+#endif        
 		switch (parse_status)
 		{
 			case NOT_SUPPORTED:
-				DBG1(DBG_IKE, "critical unknown payloads found");
+				// ETAY DBG1(DBG_IKE, "critical unknown payloads found");
+				err_str = "critical unknown payloads found"; // ETAY
+#ifndef ETAY
 				if (is_request)
 				{
 					send_notify_response(this, msg,
@@ -1603,34 +1626,43 @@ static status_t parse_message(private_task_manager_t *this, message_t *msg)
 										 chunk_from_thing(type));
 					incr_mid(this, FALSE);
 				}
+#endif
 				break;
 			case PARSE_ERROR:
-				DBG1(DBG_IKE, "message parsing failed");
+				// ETYA DBG1(DBG_IKE, "message parsing failed");
+				err_str = "message parsing failed"; // ETAY
+#ifndef ETAY
 				if (is_request)
 				{
 					status = send_invalid_syntax(this, msg);
 				}
+#endif
 				break;
 			case VERIFY_ERROR:
-				DBG1(DBG_IKE, "message verification failed");
+				// ETAY DBG1(DBG_IKE, "message verification failed");
+				err_str = "message verification failed"; // ETAY
+#ifndef ETAY
 				if (is_request)
 				{
 					status = send_invalid_syntax(this, msg);
 				}
+#endif
 				break;
 			case FAILED:
-				DBG1(DBG_IKE, "integrity check failed");
+				// ETAY DBG1(DBG_IKE, "integrity check failed");
+				err_str = "integrity check failed"; // ETAY
 				/* ignored */
 				break;
 			case INVALID_STATE:
-				DBG1(DBG_IKE, "found encrypted message, but no keys available");
+				// ETAY DBG1(DBG_IKE, "found encrypted message, but no keys available");
+				err_str = "found encrypted message, but no keys available"; // ETAY
 			default:
 				break;
 		}
-		DBG1(DBG_IKE, "%N %s with message ID %d processing failed",
+		DBG1(DBG_IKE, "%N %s from %#H with message ID %d processing failed (%s), ignored", // ETAY changed to DBG0, added "from %#H" and "(%s)", added the word "ignored"
 			 exchange_type_names, msg->get_exchange_type(msg),
-			 is_request ? "request" : "response",
-			 msg->get_message_id(msg));
+			 is_request ? "request" : "response", src, // ETAY added "src"
+			 msg->get_message_id(msg), err_str); // ETAY added ", err_str"
 
 		charon->bus->alert(charon->bus, ALERT_PARSE_ERROR_BODY, msg,
 						   parse_status);
@@ -1816,6 +1848,9 @@ METHOD(task_manager_t, process_message, status_t,
 		switch (is_retransmit(this, msg))
 		{
 			case ALREADY_DONE:
+#ifdef ETAY
+                if ( mid != 0 ) {
+#endif
 				DBG1(DBG_IKE, "received retransmit of request with ID %d, "
 					 "retransmitting response", mid);
 				this->ike_sa->set_statistic(this->ike_sa, STAT_INBOUND,
@@ -1824,6 +1859,13 @@ METHOD(task_manager_t, process_message, status_t,
 				send_packets(this, this->responding.packets,
 							 msg->get_destination(msg), msg->get_source(msg));
 				return SUCCESS;
+#ifdef ETAY
+                } else {
+				DBG0(DBG_IKE, "received retransmit of request with ID 0, Ignoring.");
+				charon->bus->alert(charon->bus, ALERT_RETRANSMIT_RECEIVE, msg);
+                return FAILED;
+                }
+#endif
 			case INVALID_ARG:
 				if (mid == 0 && is_potential_mid_sync(this, msg))
 				{
@@ -1881,10 +1923,15 @@ METHOD(task_manager_t, process_message, status_t,
 		if (!ike_cfg)
 		{
 			/* no config found for these hosts, destroy */
+#ifndef ETAY
 			DBG1(DBG_IKE, "no IKE config found for %H...%H, sending %N",
 				 me, other, notify_type_names, NO_PROPOSAL_CHOSEN);
 			send_notify_response(this, msg,
 								 NO_PROPOSAL_CHOSEN, chunk_empty);
+#else
+			DBG0(DBG_IKE, "no IKE config found for %H...%H, ignore",
+				 me, other, notify_type_names);
+#endif
 			return DESTROY_ME;
 		}
 		this->ike_sa->set_ike_cfg(this->ike_sa, ike_cfg);

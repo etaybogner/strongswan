@@ -49,6 +49,8 @@ METHOD(listener_t, alert, bool,
 	certificate_t *cert;
 	time_t not_before, not_after;
 	int num;
+    packet_t* packet = 0; // ETAY
+    message = 0; // ETAY
 
 	if (!this->socket->has_listeners(this->socket))
 	{
@@ -85,26 +87,56 @@ METHOD(listener_t, alert, bool,
 		case ALERT_INVALID_IKE_SPI:
 			msg.type = htonl(ERROR_NOTIFY_INVALID_IKE_SPI);
 			message = va_arg(args, message_t*);
+#ifndef ETAY
 			snprintf(msg.str, sizeof(msg.str), "received IKE message with unknown "
 					 "SPI from %#H", message->get_source(message));
+#else
+			snprintf(msg.str, sizeof(msg.str), "received IKE message with unknown SPI");
+#endif
 			break;
+#ifdef ETAY
+        case ALERT_INVALID_MAJOR_VERSION:
+            msg.type = htonl(ERROR_NOTIFY_INVALID_MAJOR_VERSION);
+            message = va_arg(args, message_t*);
+            snprintf(msg.str, sizeof(msg.str), "received invalid IKE version");
+            break;        
+        case ALERT_UNACCEPTABLE_PROPOSALS:
+            msg.type = htonl(ERROR_NOTIFY_UNACCEPTABLE_PROPOSALS);
+            message = va_arg(args, message_t*);
+            snprintf(msg.str, sizeof(msg.str), "received unacceptable proposals");
+            break;
+        case ALERT_UNACCEPTABLE_DH_PROPOSAL:
+            msg.type = htonl(ERROR_NOTIFY_UNACCEPTABLE_DH_PROPOSAL);
+            message = va_arg(args, message_t*);
+            snprintf(msg.str, sizeof(msg.str), "received unacceptable DH proposal");
+            break;
+#endif
 		case ALERT_PARSE_ERROR_HEADER:
 			msg.type = htonl(ERROR_NOTIFY_PARSE_ERROR_HEADER);
 			message = va_arg(args, message_t*);
+#ifndef ETAY
 			snprintf(msg.str, sizeof(msg.str), "parsing IKE header from "
 					 "%#H failed", message->get_source(message));
+#else
+			snprintf(msg.str, sizeof(msg.str), "parsing IKE header");
+#endif
 			break;
 		case ALERT_PARSE_ERROR_BODY:
 			msg.type = htonl(ERROR_NOTIFY_PARSE_ERROR_BODY);
 			message = va_arg(args, message_t*);
+#ifndef ETAY
 			snprintf(msg.str, sizeof(msg.str), "parsing IKE message from "
 					 "%#H failed", message->get_source(message));
+#else
+			snprintf(msg.str, sizeof(msg.str), "parsing IKE message");
+#endif
 			break;
 		case ALERT_RETRANSMIT_SEND:
 			msg.type = htonl(ERROR_NOTIFY_RETRANSMIT_SEND);
-			va_arg(args, packet_t*);
+			packet = va_arg(args, packet_t*); // ETAY added "packet ="
 			snprintf(msg.str, sizeof(msg.str), "IKE message retransmission "
 					 "number %u", va_arg(args, u_int));
+            snprintf(msg.ip, sizeof(msg.ip), "%#H", packet->get_destination(packet)); // ETAY
 			break;
 		case ALERT_RETRANSMIT_SEND_CLEARED:
 			msg.type = htonl(ERROR_NOTIFY_RETRANSMIT_CLEARED);
@@ -119,9 +151,13 @@ METHOD(listener_t, alert, bool,
 		case ALERT_RETRANSMIT_RECEIVE:
 			msg.type = htonl(ERROR_NOTIFY_RETRANSMIT_RECEIVE);
 			message = va_arg(args, message_t*);
+#ifndef ETAY
 			snprintf(msg.str, sizeof(msg.str), "received retransmit of request "
 					 "with ID %d from %#H", message->get_message_id(message),
 					 message->get_source(message));
+#else
+			snprintf(msg.str, sizeof(msg.str), "received retransmit of request with ID %d", message->get_message_id(message));
+#endif
 			break;
 		case ALERT_HALF_OPEN_TIMEOUT:
 			msg.type = htonl(ERROR_NOTIFY_HALF_OPEN_TIMEOUT);
@@ -269,6 +305,12 @@ METHOD(listener_t, alert, bool,
 					 peer_cfg->get_name(peer_cfg));
 		}
 	}
+#ifdef ETAY
+    if ( msg.ip[0] == '\0' && message )
+    {
+        snprintf(msg.ip, sizeof(msg.ip), "%#H", message->get_source(message));
+    }
+#endif
 
 	this->socket->notify(this->socket, &msg);
 

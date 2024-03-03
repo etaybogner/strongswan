@@ -696,7 +696,7 @@ METHOD(ike_sa_t, send_keepalive, void,
 		data.ptr[0] = 0xFF;
 		data.len = 1;
 		packet->set_data(packet, data);
-		DBG1(DBG_IKE, "sending keep alive to %#H", this->other_host);
+		DBG3(DBG_IKE, "sending keep alive to %#H", this->other_host); // ETAY: Changed to DBG3 from DBG1
 		charon->sender->send_no_marker(charon->sender, packet);
 		this->stats[STAT_OUTBOUND] = now;
 		diff = 0;
