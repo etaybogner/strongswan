@@ -4,7 +4,7 @@
 build_botan()
 {
 	# same revision used in the build recipe of the testing environment
-	BOTAN_REV=3.1.1
+	BOTAN_REV=3.3.0
 	BOTAN_DIR=$DEPS_BUILD_DIR/botan
 
 	if test -d "$BOTAN_DIR"; then
@@ -37,7 +37,7 @@ build_botan()
 
 build_wolfssl()
 {
-	WOLFSSL_REV=v5.6.3-stable
+	WOLFSSL_REV=v5.6.4-stable
 	WOLFSSL_DIR=$DEPS_BUILD_DIR/wolfssl
 
 	if test -d "$WOLFSSL_DIR"; then
@@ -340,7 +340,7 @@ macos)
 			--enable-socket-default --enable-sshkey --enable-stroke
 			--enable-swanctl --enable-unity --enable-updown
 			--enable-x509 --enable-xauth-generic"
-	DEPS="automake autoconf libtool bison gettext pkg-config openssl@1.1 curl"
+	DEPS="automake autoconf libtool bison gettext gperf pkg-config openssl@1.1 curl"
 	BREW_PREFIX=$(brew --prefix)
 	export PATH=$BREW_PREFIX/opt/bison/bin:$PATH
 	export ACLOCAL_PATH=$BREW_PREFIX/opt/gettext/share/aclocal:$ACLOCAL_PATH
@@ -501,7 +501,7 @@ sonarcloud)
 		-Dsonar.host.url=https://sonarcloud.io \
 		-Dsonar.projectKey=${SONAR_PROJECT} \
 		-Dsonar.organization=${SONAR_ORGANIZATION} \
-		-Dsonar.login=${SONAR_TOKEN} \
+		-Dsonar.token=${SONAR_TOKEN} \
 		-Dsonar.projectVersion=$(git describe --exclude 'android-*')+${BUILD_NUMBER} \
 		-Dsonar.sources=. \
 		-Dsonar.cfamily.threads=2 \
