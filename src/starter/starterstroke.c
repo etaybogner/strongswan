@@ -352,3 +352,14 @@ int starter_stroke_configure(starter_config_t *cfg)
 	}
 	return 0;
 }
+
+#ifdef ETAY
+int starter_stroke_stealthy(starter_config_t *cfg)
+{
+    stroke_msg_t *msg;
+    
+    msg = create_stroke_msg(STR_STEALTHY);
+    msg->stealthy = cfg->setup.stealthy;
+    return send_stroke_msg(msg);
+}
+#endif

@@ -197,8 +197,9 @@ typedef struct starter_config starter_config_t;
 struct starter_config {
 		struct {
 				char     *charondebug;
-				bool     uniqueids;
+				u_int    uniqueids; // ETAY changed from bool to int
 				bool     cachecrls;
+                bool     stealthy; // ETAY
 				strict_t strictcrlpolicy;
 		} setup;
 

@@ -689,6 +689,7 @@ starter_config_t* confread_load(const char *file)
 	INIT(cfg,
 		.setup = {
 			.uniqueids = TRUE,
+			.stealthy = FALSE, // ETAY
 		}
 	);
 

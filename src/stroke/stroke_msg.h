@@ -229,6 +229,7 @@ struct stroke_msg_t {
 		/* print/reset counters */
 		STR_COUNTERS,
 		/* more to come */
+        STR_STEALTHY, // ETAY
 	} type;
 
 	/* verbosity of output returned from charon (-from -1=silent to 4=private)*/
@@ -369,6 +370,7 @@ struct stroke_msg_t {
 			int reset;
 			char *name;
 		} counters;
+        int stealthy; // ETAY
 	};
 	/* length of the string buffer */
 	uint16_t buflen;

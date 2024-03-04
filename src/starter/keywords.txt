@@ -18,6 +18,8 @@
 #define IN_GPERF_GENERATED_FILE
 #include "keywords.h"
 
+// ETAY ADDED STEALTHY BELOW
+
 %}
 struct kw_entry {
     char *name;
@@ -29,6 +31,7 @@ charondebug,       KW_CHARONDEBUG
 uniqueids,         KW_UNIQUEIDS
 cachecrls,         KW_CACHECRLS
 strictcrlpolicy,   KW_STRICTCRLPOLICY
+stealthy,          KW_STEALTHY
 keyexchange,       KW_KEYEXCHANGE
 type,              KW_TYPE
 compress,          KW_COMPRESS

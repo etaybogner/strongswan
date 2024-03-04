@@ -744,6 +744,7 @@ int main (int argc, char **argv)
 				}
 				confread_free(cfg);
 				cfg = new_cfg;
+                starter_stroke_stealthy(cfg); // ETAY
 			}
 			else
 			{
@@ -838,6 +839,8 @@ int main (int argc, char **argv)
 					}
 				}
 			}
+			
+            starter_stroke_stealthy(cfg); // ETAY
 		}
 
 		/*

@@ -391,6 +391,17 @@ static int set_loglevel(char *type, u_int level)
 	return send_stroke_msg(msg);
 }
 
+#ifdef ETAY
+static int set_stealthy(int stealthy)
+{
+    stroke_msg_t *msg;
+
+    msg = create_stroke_msg(STR_STEALTHY);
+    msg->stealthy = stealthy;
+    return send_stroke_msg(msg);
+}
+#endif
+
 static int usage(char *error)
 {
 	FILE *out = error ? stderr : stdout;
@@ -467,6 +478,10 @@ static int usage(char *error)
 	fprintf(out, "           PASSWORD is the optional password, you'll be asked to enter it if not given\n");
 	fprintf(out, "  Show IKE counters:\n");
 	fprintf(out, "    stroke listcounters [connection-name]\n");
+#ifdef ETAY
+	fprintf(out, "  Set stealthy mode:\n");
+	fprintf(out, "    stroke stealthy 1|0\n");
+#endif
 
 	if (error)
 	{
@@ -664,6 +679,15 @@ int main(int argc, char *argv[])
 			res = counters(token->kw == STROKE_COUNTERS_RESET,
 						   argc ? argv[0] : NULL);
 			break;
+#ifdef ETAY
+        case STROKE_STEALTHY:
+            if (argc == 0 )
+            {
+                return usage("\"stealthy\" needs a boolean as a param");
+            }
+            set_stealthy(atoi(argv[0]));
+            break;
+#endif
 		default:
 			return usage(NULL);
 	}

@@ -19,6 +19,8 @@
 
 #include "stroke_keywords.h"
 
+// ETAY added stealthy
+
 %}
 struct stroke_token {
     char *name;
@@ -73,3 +75,4 @@ memusage,        STROKE_MEMUSAGE
 user-creds,      STROKE_USER_CREDS
 listcounters,    STROKE_COUNTERS
 resetcounters,   STROKE_COUNTERS_RESET
+stealthy,        STROKE_STEALTHY

@@ -1012,17 +1012,14 @@ static status_t build_response(private_task_manager_t *this, message_t *request)
 
 	/* message complete, send it */
 	clear_packets(this->responding.packets);
-#ifndef ETAY
-	result = generate_message(this, message, &this->responding.packets);
-#else
-    if ( delete )
+    if ( charon->stealthy && delete ) // ETAY added check for stealthy
     {
 	    result = FALSE;
     }
     else
 	    result = generate_message(this, message, &this->responding.packets);
-#endif
-	if (result && !delete)
+	
+    if (result && !delete)
 	{
 		enumerator = array_create_enumerator(this->passive_tasks);
 		while (enumerator->enumerate(enumerator, &task))
@@ -1486,7 +1483,6 @@ static status_t handle_fragment(private_task_manager_t *this,
 /**
  * Send a notify back to the sender
  */
-#ifndef ETAY
 static void send_notify_response(private_task_manager_t *this,
 								 message_t *request, notify_type_t type,
 								 chunk_t data)
@@ -1521,13 +1517,11 @@ static void send_notify_response(private_task_manager_t *this,
 	}
 	response->destroy(response);
 }
-#endif
 
 /**
  * Send an INVALID_SYNTAX notify and destroy the IKE_SA for authenticated
  * messages.
  */
-#ifndef ETAY
 static status_t send_invalid_syntax(private_task_manager_t *this,
 									message_t *msg)
 {
@@ -1542,7 +1536,6 @@ static status_t send_invalid_syntax(private_task_manager_t *this,
 	}
 	return DESTROY_ME;
 }
-#endif
 
 /**
  * Check for unsupported critical payloads
@@ -1618,35 +1611,30 @@ static status_t parse_message(private_task_manager_t *this, message_t *msg)
 			case NOT_SUPPORTED:
 				// ETAY DBG1(DBG_IKE, "critical unknown payloads found");
 				err_str = "critical unknown payloads found"; // ETAY
-#ifndef ETAY
-				if (is_request)
+				if ( ! charon->stealthy && is_request) // ETAY added check for stealthy
 				{
 					send_notify_response(this, msg,
 										 UNSUPPORTED_CRITICAL_PAYLOAD,
 										 chunk_from_thing(type));
 					incr_mid(this, FALSE);
 				}
-#endif
 				break;
 			case PARSE_ERROR:
-				// ETYA DBG1(DBG_IKE, "message parsing failed");
+				// ETAY DBG1(DBG_IKE, "message parsing failed");
 				err_str = "message parsing failed"; // ETAY
-#ifndef ETAY
-				if (is_request)
+                if ( ! charon->stealthy && is_request) // ETAY added check for stealthy
+
 				{
 					status = send_invalid_syntax(this, msg);
 				}
-#endif
 				break;
 			case VERIFY_ERROR:
 				// ETAY DBG1(DBG_IKE, "message verification failed");
 				err_str = "message verification failed"; // ETAY
-#ifndef ETAY
-				if (is_request)
+                if ( ! charon->stealthy && is_request) // ETAY added check for stealthy
 				{
 					status = send_invalid_syntax(this, msg);
 				}
-#endif
 				break;
 			case FAILED:
 				// ETAY DBG1(DBG_IKE, "integrity check failed");
@@ -1659,7 +1647,7 @@ static status_t parse_message(private_task_manager_t *this, message_t *msg)
 			default:
 				break;
 		}
-		DBG1(DBG_IKE, "%N %s from %#H with message ID %d processing failed (%s), ignored", // ETAY changed to DBG0, added "from %#H" and "(%s)", added the word "ignored"
+		DBG0(DBG_IKE, "%N %s from %#H with message ID %d processing failed (%s), ignored", // ETAY changed to DBG0, added "from %#H" and "(%s)", added the word "ignored"
 			 exchange_type_names, msg->get_exchange_type(msg),
 			 is_request ? "request" : "response", src, // ETAY added "src"
 			 msg->get_message_id(msg), err_str); // ETAY added ", err_str"
@@ -1849,7 +1837,7 @@ METHOD(task_manager_t, process_message, status_t,
 		{
 			case ALREADY_DONE:
 #ifdef ETAY
-                if ( mid != 0 ) {
+                if ( ! charon->stealthy && mid != 0 ) {
 #endif
 				DBG1(DBG_IKE, "received retransmit of request with ID %d, "
 					 "retransmitting response", mid);
@@ -1923,15 +1911,15 @@ METHOD(task_manager_t, process_message, status_t,
 		if (!ike_cfg)
 		{
 			/* no config found for these hosts, destroy */
-#ifndef ETAY
-			DBG1(DBG_IKE, "no IKE config found for %H...%H, sending %N",
-				 me, other, notify_type_names, NO_PROPOSAL_CHOSEN);
-			send_notify_response(this, msg,
+            if ( ! charon->stealthy ) { // ETAY
+			    DBG1(DBG_IKE, "no IKE config found for %H...%H, sending %N",
+				    me, other, notify_type_names, NO_PROPOSAL_CHOSEN);
+			    send_notify_response(this, msg,
 								 NO_PROPOSAL_CHOSEN, chunk_empty);
-#else
-			DBG0(DBG_IKE, "no IKE config found for %H...%H, ignore",
-				 me, other, notify_type_names);
-#endif
+            } else {
+			    DBG0(DBG_IKE, "no IKE config found for %H...%H, ignore",
+				    me, other, notify_type_names);
+            }
 			return DESTROY_ME;
 		}
 		this->ike_sa->set_ike_cfg(this->ike_sa, ike_cfg);

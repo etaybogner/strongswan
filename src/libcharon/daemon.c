@@ -942,6 +942,7 @@ private_daemon_t *daemon_create()
 			.set_default_loggers = _set_default_loggers,
 			.set_level = _set_level,
 			.bus = bus_create(),
+            .stealthy = FALSE, // ETAY
 		},
 		.loggers = linked_list_create(),
 		.mutex = mutex_create(MUTEX_TYPE_DEFAULT),

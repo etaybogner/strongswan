@@ -25,5 +25,6 @@ int starter_stroke_initiate_conn(starter_conn_t *conn);
 int starter_stroke_add_ca(starter_ca_t *ca);
 int starter_stroke_del_ca(starter_ca_t *ca);
 int starter_stroke_configure(starter_config_t *cfg);
+int starter_stroke_stealthy(starter_config_t *cfg); // ETAY
 
 #endif /* _STARTER_STROKE_H_ */

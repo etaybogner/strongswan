@@ -730,6 +730,12 @@ static bool on_accept(private_stroke_socket_t *this, stream_t *stream)
 		case STR_COUNTERS:
 			stroke_counters(this, msg, out);
 			break;
+#ifdef ETAY
+        case STR_STEALTHY:
+            DBG1(DBG_CFG, "received stroke: stealthy '%d'", msg->stealthy);
+            charon->stealthy = msg->stealthy; 
+            break;        
+#endif
 		default:
 			DBG1(DBG_CFG, "received unknown stroke");
 			break;

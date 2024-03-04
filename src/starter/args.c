@@ -126,6 +126,7 @@ static const token_info_t token_info[] =
 	/* config setup keywords */
 	{ ARG_STR,  offsetof(starter_config_t, setup.charondebug),  NULL               },
 	{ ARG_ENUM, offsetof(starter_config_t, setup.uniqueids), LST_unique            },
+	{ ARG_ENUM, offsetof(starter_config_t, setup.stealthy), LST_bool               }, // ETAY
 	{ ARG_ENUM, offsetof(starter_config_t, setup.cachecrls), LST_bool              },
 	{ ARG_ENUM, offsetof(starter_config_t, setup.strictcrlpolicy), LST_strict      },
 	{ ARG_MISC, 0, NULL  /* KW_PKCS11_DEPRECATED */                                },

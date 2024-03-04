@@ -554,10 +554,9 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 			if (message->get_exchange_type(message) == IKE_SA_INIT &&
 				message->get_request(message))
 			{
-#ifndef ETAY
-				send_notify(message, IKEV1_MAJOR_VERSION, INFORMATIONAL_V1,
+                if ( ! charon->stealthy ) // ETAY
+				    send_notify(message, IKEV1_MAJOR_VERSION, INFORMATIONAL_V1,
 							INVALID_MAJOR_VERSION, chunk_empty);
-#endif /* ETAY */
 				supported = FALSE;
 			}
 #endif /* USE_IKEV2 */
@@ -567,25 +566,23 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 			if (message->get_exchange_type(message) == ID_PROT ||
 				message->get_exchange_type(message) == AGGRESSIVE)
 			{
-#ifndef ETAY
-				send_notify(message, IKEV2_MAJOR_VERSION, INFORMATIONAL,
+                if ( ! charon->stealthy ) // ETAY
+				    send_notify(message, IKEV2_MAJOR_VERSION, INFORMATIONAL,
 							INVALID_MAJOR_VERSION, chunk_empty);
-#endif /* ETAY */
 				supported = FALSE;
 			}
 #endif /* USE_IKEV1 */
 			break;
 		default:
-#ifndef ETAY
+            if ( ! charon->stealthy ) // ETAY
 #ifdef USE_IKEV2
-			send_notify(message, IKEV2_MAJOR_VERSION,
+			    send_notify(message, IKEV2_MAJOR_VERSION,
 						message->get_exchange_type(message),
 						INVALID_MAJOR_VERSION, chunk_empty);
 #elif defined(USE_IKEV1)
-			send_notify(message, IKEV1_MAJOR_VERSION, INFORMATIONAL_V1,
+			    send_notify(message, IKEV1_MAJOR_VERSION, INFORMATIONAL_V1,
 						INVALID_MAJOR_VERSION, chunk_empty);
 #endif /* USE_IKEV1 */
-#endif /* ETAY */
 			supported = FALSE;
 			break;
 	}

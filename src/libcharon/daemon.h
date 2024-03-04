@@ -322,6 +322,8 @@ struct daemon_t {
 	mediation_manager_t *mediation_manager;
 #endif /* ME */
 
+    bool stealthy; // ETAY
+
 	/**
 	 * Initialize the daemon.
 	 *

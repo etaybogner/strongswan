@@ -22,6 +22,7 @@ enum kw_token_t {
 	/* config setup keywords */
 	KW_CHARONDEBUG,
 	KW_UNIQUEIDS,
+	KW_STEALTHY, // ETAY
 	KW_CACHECRLS,
 	KW_STRICTCRLPOLICY,
 	KW_PKCS11_DEPRECATED,
