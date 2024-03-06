@@ -682,10 +682,9 @@ int main(int argc, char *argv[])
 #ifdef ETAY
         case STROKE_STEALTHY:
             if (argc == 0 )
-            {
-                return usage("\"stealthy\" needs a boolean as a param");
-            }
-            set_stealthy(atoi(argv[0]));
+                set_stealthy(-1);
+            else
+                set_stealthy(atoi(argv[0]));
             break;
 #endif
 		default:

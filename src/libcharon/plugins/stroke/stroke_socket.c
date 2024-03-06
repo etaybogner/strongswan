@@ -609,6 +609,20 @@ static void stroke_config(private_stroke_socket_t *this,
 	this->cred->cachecrl(this->cred, msg->config.cachecrl);
 }
 
+#ifdef ETAY
+static void stroke_stealthy(private_stroke_socket_t *this,
+                            stroke_msg_t *msg, FILE *out)
+{
+    DBG1(DBG_CFG, "received stroke: stealthy '%d'", msg->stealthy);
+    if ( msg->stealthy == -1 )
+        fprintf(out, "stealthy mode is %s\n", ( charon->stealthy ? "on" : "off"));
+    else
+    {
+        fprintf(out, "setting stealthy mode to %s\n", ( msg->stealthy ? "on" : "off"));
+        charon->stealthy = msg->stealthy;
+    }
+}
+#endif
 /**
  * process a stroke request
  */
@@ -732,8 +746,7 @@ static bool on_accept(private_stroke_socket_t *this, stream_t *stream)
 			break;
 #ifdef ETAY
         case STR_STEALTHY:
-            DBG1(DBG_CFG, "received stroke: stealthy '%d'", msg->stealthy);
-            charon->stealthy = msg->stealthy; 
+            stroke_stealthy(this, msg, out);
             break;        
 #endif
 		default:
