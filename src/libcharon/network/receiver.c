@@ -536,7 +536,9 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 	message = message_create_from_packet(packet);
 	if (message->parse_header(message) != SUCCESS)
 	{
-		DBG1(DBG_NET, "received invalid IKE header from %H - ignored", src);
+#if DEBUG_LEVEL >= 0
+		dbg(DBG_NET, ( charon->stealthy ? 0 : 1 ), "received invalid IKE header from %H, ignoring%s", src, ( charon->stealthy ? " (stealth)" : "" ));
+#endif
 		charon->bus->alert(charon->bus, ALERT_PARSE_ERROR_HEADER, message);
 		message->destroy(message);
 		return JOB_REQUEUE_DIRECT;
@@ -585,7 +587,7 @@ static job_requeue_t receive_packets(private_receiver_t *this)
 	}
 	if (!supported)
 	{
-#if DEBUG_LEVEL >= 1
+#if DEBUG_LEVEL >= 0
 		if ( charon->stealthy )
 			DBG0(DBG_NET, "received unsupported IKE from %H, ignoring (stealth)", src);
 		else
