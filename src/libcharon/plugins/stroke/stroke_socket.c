@@ -613,11 +613,11 @@ static void stroke_config(private_stroke_socket_t *this,
 static void stroke_stealthy(private_stroke_socket_t *this,
                             stroke_msg_t *msg, FILE *out)
 {
-    DBG1(DBG_CFG, "received stroke: stealthy '%d'", msg->stealthy);
     if ( msg->stealthy == -1 )
         fprintf(out, "stealthy mode is %s\n", ( charon->stealthy ? "on" : "off"));
     else
     {
+        DBG1(DBG_CFG, "received stroke: setting stealthy mode to %s", ( msg->stealthy ? "on" : "off"));
         fprintf(out, "setting stealthy mode to %s\n", ( msg->stealthy ? "on" : "off"));
         charon->stealthy = msg->stealthy;
     }
