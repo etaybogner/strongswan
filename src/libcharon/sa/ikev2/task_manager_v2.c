@@ -1595,7 +1595,7 @@ static status_t parse_message(private_task_manager_t *this, message_t *msg)
 	if (parse_status != SUCCESS)
 	{
 		bool is_request = msg->get_request(msg);
-#ifdef ETAY
+        // ETAY: added additional information for printinf below
         packet_t *packet;
         host_t *src;
         char* err_str;
@@ -1605,8 +1605,8 @@ static status_t parse_message(private_task_manager_t *this, message_t *msg)
         src = packet->get_source(packet);
 
         status = DESTROY_ME;
-#endif        
-		switch (parse_status)
+		
+        switch (parse_status)
 		{
 			case NOT_SUPPORTED:
 				// ETAY DBG1(DBG_IKE, "critical unknown payloads found");
