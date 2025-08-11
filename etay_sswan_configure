@@ -1,0 +1,16 @@
+#./configure --prefix=/usr --sysconfdir=/etc --enable-acert --enable-constraints --disable-des --disable-md5 --disable-rc2 --disable-sha1 --enable-sha3 --enable-ext-auth --enable-farp --enable-forecast --enable-xauth-noauth --enable-dnscert --enable-ipseckey --enable-lookip --enable-swanctl --enable-systime-fix --enable-vici --enable-kernel-libipsec --enable-libipsec
+
+./configure --prefix=/usr --sysconfdir=/etc --enable-acert --enable-constraints --disable-des --disable-md5 --disable-rc2 --enable-sha3 --enable-ext-auth --enable-farp --enable-forecast --enable-xauth-noauth --enable-dnscert --enable-ipseckey --enable-lookip --enable-swanctl --enable-systime-fix --enable-vici --enable-dhcp --enable-eap-identity --enable-eap-mschapv2 --enable-eap-radius --enable-xauth-eap --enable-eap-dynamic --enable-openssl --enable-counters --enable-cmd --enable-gcm --enable-eap-tls --enable-eap-ttls
+
+--enable-eap-tls
+--enable-eap-identity
+--enable-eap-mschapv2
+--enable-eap-tnc
+--enable-eap-ttls
+
+
+DONT forget to add "#define ETAY" to config.h after you run configure
+
+./configure --prefix=/usr --sysconfdir=/etc --enable-acert --enable-constraints --disable-des --disable-md5 --disable-rc2 --enable-sha3 --enable-farp --enable-forecast --enable-lookip --enable-swanctl --enable-systime-fix --enable-vici --enable-dhcp --enable-openssl --enable-counters --enable-cmd --enable-gcm --disable-ikev1 --disable-sha1 --with-capabilities=libcap --with-capabilities=native --with-user=vpn --with-group=vpn --enable-error-notify
+
+
