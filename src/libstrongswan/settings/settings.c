@@ -514,6 +514,28 @@ static char *find_value(private_settings_t *this, section_t *section,
 	{
 		value = kv->value;
 	}
+    else
+    {
+        char hostname[HOST_NAME_MAX];
+        char* short_hostname;
+
+        gethostname(hostname, sizeof(hostname));
+        short_hostname = strchr(hostname, '.');
+        if ( short_hostname )
+            *short_hostname = '\0';
+
+        if (snprintf(keybuf, sizeof(keybuf), "%s.%s", key, hostname) < sizeof(keybuf))
+        {
+            kv = find_value_buffered(this, section, keybuf, keybuf, args,
+                                     buf, sizeof(buf), FALSE, &sections);
+            if (kv)
+            {
+                value = kv->value;
+
+                DBG1(DBG_CFG, "key '%s' found as a hostname key '%s' with value '%s'", key, keybuf, value);
+            }
+        }
+    }
 	this->lock->unlock(this->lock);
 	array_destroy(sections);
 	return value;

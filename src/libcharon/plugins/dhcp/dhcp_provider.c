@@ -462,30 +462,6 @@ METHOD(dhcp_provider_t, destroy, void,
 	free(this);
 }
 
-static int get_short_hostname(char* hostname_out, int hostname_len) {
-     FILE *fp;         // File pointer for the pipe
- 
-     fp = popen("hostname -s", "r"); 
-     if (fp == NULL) {
-         DBG1(DBG_CFG, "dhcp plugin failed to retrieve the hostname: %s (%d)", strerror(errno), errno);
-         return 1;
-     }
-
-     memset(hostname_out, 0, hostname_len);
- 
-     // Read the output line by line and print it
-     while (fgets(hostname_out, hostname_len, fp) != NULL) {
-        char *p = memchr(hostname_out,'\n', hostname_len);
-            if (p!=NULL)
-                *p=0x0;
-     }
-
-     
-     // Close the pipe and free resources
-     pclose(fp);
- 
-     return 0;
- }
 /**
  * See header
  */
@@ -521,17 +497,14 @@ dhcp_provider_t *dhcp_provider_create(dhcp_socket_t *socket)
         }
         else
         {
-            char hostname_buffer[128];
-
-            get_short_hostname(hostname_buffer, sizeof(hostname_buffer));
             this->ipv6_desired_pd_len = lib->settings->get_int(lib->settings, "%s.plugins.dhcp.ipv6_desired_pd_len", 64, lib->ns);
-            this->ipv6_server_id = lib->settings->get_int(lib->settings, "%s.plugins.dhcp.ipv6_server_ids.%s", 0, lib->ns, hostname_buffer);
+            this->ipv6_server_id = lib->settings->get_int(lib->settings, "%s.plugins.dhcp.ipv6_server_ids", 0, lib->ns);
             if (this->ipv6_server_id > 9999)
             {
-                DBG1(DBG_CFG, "dhcp plugin was configured with server id %d for hostname %s which is larger than what can be embedded in an ipv6 16 bit part when displayed as an integer. ignoring it", this->ipv6_server_id, hostname_buffer);
+                DBG1(DBG_CFG, "dhcp plugin was configured with server id %d which is larger than what can be embedded in an ipv6 16 bit part when displayed as an integer. ignoring it", this->ipv6_server_id);
                 this->ipv6_server_id = 0;
             }
-            DBG1(DBG_CFG, "dhcp plugin is set with ipv6_prefix %s desired pd len %d and server id %d for hostname %s", this->ipv6_prefix, this->ipv6_desired_pd_len, this->ipv6_server_id, hostname_buffer);
+            DBG1(DBG_CFG, "dhcp plugin is set with ipv6_prefix %s desired pd len %d and server id %d", this->ipv6_prefix, this->ipv6_desired_pd_len, this->ipv6_server_id);
         }
     }
 
