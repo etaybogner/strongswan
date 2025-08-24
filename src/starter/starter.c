@@ -456,10 +456,17 @@ int main (int argc, char **argv)
 		exit(LSB_RC_FAILURE);
 	}
 
+#ifdef ETAY
+	DBG1(DBG_APP, "Starting %sSwan "VERSION"-ETAY IPsec [starter]...",
+		lib->settings->get_bool(lib->settings,
+			"charon.i_dont_care_about_security_and_use_aggressive_mode_psk",
+				FALSE) ? "weak" : "strong");
+#else
 	DBG1(DBG_APP, "Starting %sSwan "VERSION" IPsec [starter]...",
 		lib->settings->get_bool(lib->settings,
 			"charon.i_dont_care_about_security_and_use_aggressive_mode_psk",
 				FALSE) ? "weak" : "strong");
+#endif
 
 #ifdef LOAD_WARNING
 	load_warning = TRUE;
@@ -744,7 +751,9 @@ int main (int argc, char **argv)
 				}
 				confread_free(cfg);
 				cfg = new_cfg;
+#ifdef ETAY
                 starter_stroke_stealthy(cfg); // ETAY
+#endif
 			}
 			else
 			{
@@ -839,8 +848,9 @@ int main (int argc, char **argv)
 					}
 				}
 			}
-			
+#ifdef ETAY	
             starter_stroke_stealthy(cfg); // ETAY
+#endif
 		}
 
 		/*

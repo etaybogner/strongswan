@@ -70,6 +70,9 @@ struct private_settings_t {
 	 * Lock to safely access the settings
 	 */
 	rwlock_t *lock;
+
+
+    char short_hostname[HOST_NAME_MAX];
 };
 
 /**
@@ -514,25 +517,19 @@ static char *find_value(private_settings_t *this, section_t *section,
 	{
 		value = kv->value;
 	}
-    else
+    else if ( this->short_hostname[0] )
     {
-        char hostname[HOST_NAME_MAX];
-        char* short_hostname;
+	    char hostname_buf[128], hostname_keybuf[512];
 
-        gethostname(hostname, sizeof(hostname));
-        short_hostname = strchr(hostname, '.');
-        if ( short_hostname )
-            *short_hostname = '\0';
-
-        if (snprintf(keybuf, sizeof(keybuf), "%s.%s", key, hostname) < sizeof(keybuf))
+        if (snprintf(hostname_keybuf, sizeof(hostname_keybuf), "%s.%s", key, this->short_hostname) < sizeof(hostname_keybuf))
         {
-            kv = find_value_buffered(this, section, keybuf, keybuf, args,
-                                     buf, sizeof(buf), FALSE, &sections);
+            kv = find_value_buffered(this, section, hostname_keybuf, hostname_keybuf, args,
+                                     hostname_buf, sizeof(hostname_buf), FALSE, &sections);
             if (kv)
             {
                 value = kv->value;
 
-                DBG1(DBG_CFG, "key '%s' found as a hostname key '%s' with value '%s'", key, keybuf, value);
+                DBG1(DBG_CFG, "key '%s' found as a hostname key '%s.%s' with value '%s'", buf, buf, hostname_buf, value);
             }
         }
     }
@@ -1130,6 +1127,7 @@ METHOD(settings_t, destroy_clear, void,
 static private_settings_t *settings_create_base()
 {
 	private_settings_t *this;
+    char* short_hostname_ptr;
 
 	INIT(this,
 		.public = {
@@ -1158,6 +1156,20 @@ static private_settings_t *settings_create_base()
 		.contents = array_create(0, 0),
 		.lock = rwlock_create(RWLOCK_TYPE_DEFAULT),
 	);
+    
+    if ( gethostname(this->short_hostname, sizeof(this->short_hostname)) == 0 )
+    {
+        short_hostname_ptr = strchr(this->short_hostname, '.');
+        if ( short_hostname_ptr )
+        {
+            *short_hostname_ptr = '\0';
+        }
+    }
+    else
+    {
+        this->short_hostname[0] = '\0';
+    }
+
 	return this;
 }
 

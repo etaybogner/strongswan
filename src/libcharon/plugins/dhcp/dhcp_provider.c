@@ -304,7 +304,6 @@ METHOD(attribute_provider_t, acquire_address, host_t*,
             return NULL;
         }
 
-        DBG1(DBG_CFG, "dhcp plugin client identity based IPV6 assigmnents is using ipv6_prefix: %s with a desired pd len of %d", this->ipv6_prefix, this->ipv6_desired_pd_len);
         char active_ipv6_pd[128];
         if (find_active_pd(this->ipv6_prefix, this->ipv6_desired_pd_len, active_ipv6_pd, sizeof(active_ipv6_pd)) == 0) {
             DBG2(DBG_CFG, "dhcp plugin client identity based IPV6 assigmnents found an active PD: %s", active_ipv6_pd);
@@ -504,7 +503,7 @@ dhcp_provider_t *dhcp_provider_create(dhcp_socket_t *socket)
                 DBG1(DBG_CFG, "dhcp plugin was configured with server id %d which is larger than what can be embedded in an ipv6 16 bit part when displayed as an integer. ignoring it", this->ipv6_server_id);
                 this->ipv6_server_id = 0;
             }
-            DBG1(DBG_CFG, "dhcp plugin is set with ipv6_prefix %s desired pd len %d and server id %d", this->ipv6_prefix, this->ipv6_desired_pd_len, this->ipv6_server_id);
+            DBG1(DBG_CFG, "dhcp plugin is set to search for an ipv6_prefix %s with a desired pd len %d and using server id %d", this->ipv6_prefix, this->ipv6_desired_pd_len, this->ipv6_server_id);
         }
     }
 

@@ -1945,6 +1945,7 @@ if test x$imc_swima = xtrue -o x$imv_swima = xtrue; then
 	AC_DEFINE([USE_JSON], [], [build code for JSON])
 fi
 
+AC_DEFINE([ETAY], [], [support for Etays Modifications])
 # ====================================================
 #  options for enabled modules (see conf/Makefile.am)
 # ====================================================

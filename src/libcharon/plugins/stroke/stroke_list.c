@@ -481,7 +481,11 @@ METHOD(stroke_list_t, status, void,
 		now = time_monotonic(NULL);
 		since = time(NULL) - (now - this->uptime);
 
+#ifdef ETAY
+		fprintf(out, "Status of IKE charon daemon (%sSwan "VERSION"-ETAY", this->swan);
+#else
 		fprintf(out, "Status of IKE charon daemon (%sSwan "VERSION, this->swan);
+#endif
 		if (uname(&utsname) == 0)
 		{
 			fprintf(out, ", %s %s, %s",

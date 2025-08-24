@@ -376,7 +376,11 @@ int main(int argc, char *argv[])
 				status = 0;
 				goto deinit;
 			case 'v':
+#ifdef ETAY
+				printf("strongSwan %s-ETAY\n", VERSION);
+#else
 				printf("strongSwan %s\n", VERSION);
+#endif
 				status = 0;
 				goto deinit;
 			case 'l':
@@ -407,8 +411,13 @@ int main(int argc, char *argv[])
 	{
 		memset(&utsname, 0, sizeof(utsname));
 	}
+#ifdef ETAY
+	DBG1(DBG_DMN, "Starting IKE charon daemon (strongSwan "VERSION"-ETAY, %s %s, %s)",
+		  utsname.sysname, utsname.release, utsname.machine);
+#else
 	DBG1(DBG_DMN, "Starting IKE charon daemon (strongSwan "VERSION", %s %s, %s)",
 		  utsname.sysname, utsname.release, utsname.machine);
+#endif
 	if (lib->integrity)
 	{
 		DBG1(DBG_DMN, "integrity tests enabled:");

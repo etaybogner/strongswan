@@ -12,8 +12,8 @@
 
 sudo apt install autoconf automake bison gettext automake libcap-dev libip4tc-dev libip6tc-dev libgmp-dev libssl-dev gperf libtool pkg-config 
 
-DONT forget to add "#define ETAY" to config.h after you run configure
+# done via configure.ac: DONT forget to add "#define ETAY" to config.h after you run configure
 
-./configure --prefix=/usr --sysconfdir=/etc --enable-acert --enable-constraints --disable-des --disable-md5 --disable-rc2 --enable-sha3 --enable-farp --enable-forecast --enable-lookip --enable-swanctl --enable-systime-fix --enable-vici --enable-dhcp --enable-openssl --enable-counters --enable-cmd --enable-gcm --disable-ikev1 --disable-sha1 --with-capabilities=libcap --with-capabilities=native --with-user=vpn --with-group=vpn --enable-error-notify
+./configure --prefix=/usr --sysconfdir=/etc --enable-acert --enable-constraints --disable-des --disable-md5 --disable-rc2 --enable-sha3 --enable-farp --enable-forecast --enable-lookip --enable-swanctl --enable-systime-fix --enable-vici --enable-dhcp --enable-openssl --enable-counters --enable-cmd --enable-gcm --disable-ikev1 --disable-sha1 --with-capabilities=libcap --with-capabilities=native --with-user=vpn --with-group=vpn --enable-error-notify --enable-chapoly --enable-ccm --enable-curve25519 --enable-curl --enable-dnscert --enable-ha --enable-ipseckey 
 
 

@@ -122,7 +122,7 @@ static void send_peer(private_forecast_forwarder_t *this, uint32_t dst,
 	if (sendto(this->kernel.raw, buf, len, 0,
 			   (struct sockaddr*)&addr, sizeof(addr)) != len)
 	{
-		DBG1(DBG_NET, "forecast send_peer() failed: %s", strerror(errno));
+		DBG2(DBG_NET, "forecast send_peer() failed: %s (len=%d)", strerror(errno), len);
 	}
 }
 

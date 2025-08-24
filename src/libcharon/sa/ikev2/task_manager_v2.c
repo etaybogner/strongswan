@@ -1009,14 +1009,27 @@ static status_t build_response(private_task_manager_t *this, message_t *request)
 		responder_spi = id->get_responder_spi(id);
 		id->set_responder_spi(id, 0);
 	}
+#ifdef ETAY
+    if ( delete )
+    {
+        DBG1(DBG_IKE, "delete response? ike_state=%N (%d) ike_request_exchange=%N (%d) task_type=%N (%d) other=%H",
+            ike_sa_state_names, this->ike_sa->get_state(this->ike_sa), this->ike_sa->get_state(this->ike_sa),
+            exchange_type_names, request->get_exchange_type(request), request->get_exchange_type(request),
+            task_type_names, task->get_type(task), task->get_type(task),
+            other);
+    }
+#endif
 
 	/* message complete, send it */
 	clear_packets(this->responding.packets);
-    if ( charon->stealthy && delete ) // ETAY added check for stealthy
+#ifdef ETAY
+    if ( charon->stealthy && delete && this->ike_sa->get_state(this->ike_sa) == IKE_CONNECTING && request->get_exchange_type(request) == IKE_SA_INIT )
     {
-	    result = FALSE;
+        DBG1(DBG_IKE, "stealthy: didnt respond with a delete message at IKE_CONNECTING/IKE_SA_INIT");
+	    result = FALSE; // Dont send a response
     }
     else
+#endif
 	    result = generate_message(this, message, &this->responding.packets);
 	
     if (result && !delete)
@@ -1911,16 +1924,21 @@ METHOD(task_manager_t, process_message, status_t,
 		if (!ike_cfg)
 		{
 			/* no config found for these hosts, destroy */
-            if ( ! charon->stealthy ) { // ETAY
+#ifdef ETAY
+            if ( charon->stealthy )
+            {
+			    DBG0(DBG_IKE, "no IKE config found for %H...%H, ignore",
+				    me, other);
+            }
+            else
+#endif
+	        {
 			    DBG1(DBG_IKE, "no IKE config found for %H...%H, sending %N",
 				    me, other, notify_type_names, NO_PROPOSAL_CHOSEN);
 			    send_notify_response(this, msg,
 								 NO_PROPOSAL_CHOSEN, chunk_empty);
-            } else {
-			    DBG0(DBG_IKE, "no IKE config found for %H...%H, ignore",
-				    me, other, notify_type_names);
             }
-			return DESTROY_ME;
+		return DESTROY_ME;
 		}
 		this->ike_sa->set_ike_cfg(this->ike_sa, ike_cfg);
 		ike_cfg->destroy(ike_cfg);
