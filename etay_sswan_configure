@@ -10,7 +10,7 @@
 
 
 
-sudo apt install autoconf automake bison gettext automake libcap-dev libip4tc-dev libip6tc-dev libgmp-dev libssl-dev gperf libtool pkg-config 
+sudo apt install autoconf flex bison gettext automake libcap-dev libip4tc-dev libip6tc-dev libgmp-dev libssl-dev gperf libtool pkg-config libcurl4-openssl-dev
 
 # done via configure.ac: DONT forget to add "#define ETAY" to config.h after you run configure
 
