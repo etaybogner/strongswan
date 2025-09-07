@@ -522,9 +522,6 @@ static char *find_value(private_settings_t *this, section_t *section,
     {
         if (snprintf(keybuf, sizeof(keybuf), "%s.%s", key, this->short_hostname) < sizeof(keybuf))
         {
-            //array_destroy(sections);
-            //sections = NULL;
-            
             kv = find_value_buffered(this, section, keybuf, keybuf, args,
                                      buf, sizeof(buf), FALSE, &sections);
             if (kv)
