@@ -336,7 +336,6 @@ static kv_t *find_value_buffered(private_settings_t *this, section_t *section,
 	array_t *references;
 	char *pos;
 	int i, j;
-
 	if (!section)
 	{
 		return NULL;
@@ -366,7 +365,8 @@ static kv_t *find_value_buffered(private_settings_t *this, section_t *section,
 		}
 		if (found)
 		{
-			kv = find_value_buffered(this, found, start, pos+1, args, buf, len,
+            strcat(buf, ".");
+			kv = find_value_buffered(this, found, start, pos+1, args, buf+strlen(buf), len-strlen(buf),
 									 FALSE, sections);
 		}
 	}
@@ -405,8 +405,9 @@ static kv_t *find_value_buffered(private_settings_t *this, section_t *section,
 				{
 					/* ignore references in this referenced section, they were
 					 * resolved via resolve_reference() */
+                    strcat(buf, ".");
 					kv = find_value_buffered(this, found, start, key, args,
-											 buf, len, TRUE, sections);
+											 buf+strlen(buf), len-strlen(buf), TRUE, sections);
 				}
 			}
 			array_destroy(references);
@@ -502,7 +503,7 @@ void settings_remove_value(settings_t *settings, char *key, ...)
 static char *find_value(private_settings_t *this, section_t *section,
 						char *key, va_list args)
 {
-	char buf[128], keybuf[512], *value = NULL;
+	char buf[512], keybuf[512], *value = NULL;
 	array_t *sections = NULL;
 	kv_t *kv;
 
@@ -519,17 +520,18 @@ static char *find_value(private_settings_t *this, section_t *section,
 	}
     else if ( this->short_hostname[0] )
     {
-	    char hostname_buf[128], hostname_keybuf[512];
-
-        if (snprintf(hostname_keybuf, sizeof(hostname_keybuf), "%s.%s", key, this->short_hostname) < sizeof(hostname_keybuf))
+        if (snprintf(keybuf, sizeof(keybuf), "%s.%s", key, this->short_hostname) < sizeof(keybuf))
         {
-            kv = find_value_buffered(this, section, hostname_keybuf, hostname_keybuf, args,
-                                     hostname_buf, sizeof(hostname_buf), FALSE, &sections);
+            //array_destroy(sections);
+            //sections = NULL;
+            
+            kv = find_value_buffered(this, section, keybuf, keybuf, args,
+                                     buf, sizeof(buf), FALSE, &sections);
             if (kv)
             {
                 value = kv->value;
 
-                DBG1(DBG_CFG, "key '%s' found as a hostname key '%s.%s' with value '%s'", buf, buf, hostname_buf, value);
+                DBG1(DBG_CFG, "found per hostname key '%s' = '%s'", buf, value);
             }
         }
     }

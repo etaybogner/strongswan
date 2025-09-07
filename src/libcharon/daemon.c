@@ -886,6 +886,9 @@ static bool sa_managers_cb(void *plugin, plugin_feature_t *feature,
 METHOD(daemon_t, initialize, bool,
 	private_daemon_t *this, char *plugins)
 {
+    this->public.stealthy = lib->settings->get_bool(lib->settings, // ETAY
+                    "%s.stealthy", FALSE, lib->ns);
+
 	plugin_feature_t features[] = {
 		PLUGIN_PROVIDE(CUSTOM, "libcharon"),
 			PLUGIN_DEPENDS(NONCE_GEN),
