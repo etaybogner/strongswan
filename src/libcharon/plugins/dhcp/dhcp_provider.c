@@ -181,29 +181,29 @@ static int netmask_len_from_sockaddr(const struct sockaddr *sa)
 static void format_response(struct in6_addr* pd_addr, int desired_pd_len, char *out_pd, size_t out_len)
 {
     // The inet_ntop will give full expanded address like "2a06:c701:bdb6:4000::".
-     // We probably want the first 4 hextets for /64 (or truncated appropriately).
-     // To return without :: suffix, strip trailing "::" and zeros beyond the prefix.
-     // Simplest: create an address string truncated to exactly desired_pd_len hextets.
-     // Build textual form of the network by taking the network bytes and formatting only
-     // the hextets that belong to desired_pd_len (each hextet = 16 bits).
-     int hextets_needed = (desired_pd_len + 15) / 16; // ceil
-     // ETAY uint16_t *words = (uint16_t *)&pd_addr; // note: in6_addr is big-endian bytes; assume platform compatible
-     // But can't rely on endianness for uint16_t cast; build hextets manually:
-     char pd_text[128];
-     pd_text[0] = '\0';
-     for (int i = 0; i < hextets_needed; ++i) {
-         // each hextet is two bytes: bytes[2*i], bytes[2*i+1] (network order)
-         uint16_t hi = (uint16_t)pd_addr->s6_addr[2*i];
-         uint16_t lo = (uint16_t)pd_addr->s6_addr[2*i + 1];
-         uint16_t word = (hi << 8) | lo;
-         char piece[8];
-         if (i == 0) snprintf(piece, sizeof(piece), "%x", word);
-         else snprintf(piece, sizeof(piece), ":%x", word);
-         strncat(pd_text, piece, sizeof(pd_text) - strlen(pd_text) - 1);
-     }
-     // success: copy to output
-     strncpy(out_pd, pd_text, out_len);
-     out_pd[out_len - 1] = '\0';
+    // We probably want the first 4 hextets for /64 (or truncated appropriately).
+    // To return without :: suffix, strip trailing "::" and zeros beyond the prefix.
+    // Simplest: create an address string truncated to exactly desired_pd_len hextets.
+    // Build textual form of the network by taking the network bytes and formatting only
+    // the hextets that belong to desired_pd_len (each hextet = 16 bits).
+    int hextets_needed = (desired_pd_len + 15) / 16; // ceil
+    // uint16_t *words = (uint16_t *)&pd_addr; // note: in6_addr is big-endian bytes; assume platform compatible
+    // But can't rely on endianness for uint16_t cast; build hextets manually:
+    char pd_text[128];
+    pd_text[0] = '\0';
+    for (int i = 0; i < hextets_needed; ++i) {
+        // each hextet is two bytes: bytes[2*i], bytes[2*i+1] (network order)
+        uint16_t hi = (uint16_t)pd_addr->s6_addr[2*i];
+        uint16_t lo = (uint16_t)pd_addr->s6_addr[2*i + 1];
+        uint16_t word = (hi << 8) | lo;
+        char piece[8];
+        if (i == 0) snprintf(piece, sizeof(piece), "%x", word);
+        else snprintf(piece, sizeof(piece), ":%x", word);
+        strncat(pd_text, piece, sizeof(pd_text) - strlen(pd_text) - 1);
+    }
+    // success: copy to output
+    strncpy(out_pd, pd_text, out_len);
+    out_pd[out_len - 1] = '\0';
  }
 
 /* main function: finds PD
@@ -259,7 +259,6 @@ int find_active_pd(const char *isp_prefix, int desired_pd_len, char *out_pd, siz
 
         // check isp prefix match
         struct in6_addr masked;
-        // ETAY struct in6_addr isp_net_cmp;
         apply_mask(&addr, isp_mask, &masked);
 
         // compare masked to isp_net
