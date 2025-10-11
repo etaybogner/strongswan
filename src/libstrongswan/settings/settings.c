@@ -178,7 +178,8 @@ static section_t *find_section_buffered(section_t *section,
 	}
 	if (found && pos)
 	{
-		return find_section_buffered(found, start, pos, args, buf, len, ensure);
+        strcat(buf, ".");
+		return find_section_buffered(found, start, pos, args, buf+strlen(buf), len-strlen(buf), ensure);
 	}
 	return found;
 }
@@ -247,7 +248,8 @@ static void find_sections_buffered(private_settings_t *this, section_t *section,
 	{
 		if (pos)
 		{
-			find_sections_buffered(this, found, start, pos+1, args, buf, len,
+            strcat(buf, ".");
+			find_sections_buffered(this, found, start, pos+1, args, buf+strlen(buf), len-strlen(buf),
 								   FALSE, sections);
 		}
 		else if (!has_section(*sections, found))
@@ -276,8 +278,9 @@ static void find_sections_buffered(private_settings_t *this, section_t *section,
 				array_get(references, j, &reference);
 				/* ignore references in this referenced section, they were
 				 * resolved via resolve_reference() */
+                strcat(buf, ".");
 				find_sections_buffered(this, reference, start, key, args,
-									   buf, len, TRUE, sections);
+									   buf+strlen(buf), len-strlen(buf), TRUE, sections);
 			}
 			array_destroy(references);
 		}
@@ -290,7 +293,23 @@ static void find_sections_buffered(private_settings_t *this, section_t *section,
 static section_t *ensure_section(private_settings_t *this, section_t *section,
 								 const char *key, va_list args)
 {
-	char buf[128], keybuf[512];
+	char buf[512], keybuf[512];
+
+    if ( this->short_hostname[0] )
+    {
+        if (snprintf(keybuf, sizeof(keybuf), "%s.%s", key, this->short_hostname) < sizeof(keybuf))
+        {
+            section_t *ensured = find_section_buffered(section, keybuf, keybuf, args, buf,
+                           sizeof(buf), FALSE);
+
+            if (ensured)
+            {
+                DBG1(DBG_CFG, "found per hostname ensured section '%s' keybuf='%s'", buf, keybuf);
+
+                return ensured;
+            }
+        }
+    }
 
 	if (snprintf(keybuf, sizeof(keybuf), "%s", key) >= sizeof(keybuf))
 	{
@@ -307,7 +326,44 @@ static section_t *ensure_section(private_settings_t *this, section_t *section,
 static array_t *find_sections(private_settings_t *this, section_t *section,
 							  char *key, va_list args, array_t **sections)
 {
-	char buf[128], keybuf[512];
+	char buf[512], keybuf[512];
+
+    if ( this->short_hostname[0] )
+    {
+        if (snprintf(keybuf, sizeof(keybuf), "%s.%s", key, this->short_hostname) < sizeof(keybuf))
+        {
+            find_sections_buffered(this, section, keybuf, keybuf, args, buf,
+                           sizeof(buf), FALSE, sections);
+
+            if (*sections)
+            {
+                DBG1(DBG_CFG, "created per hostname key value enumerator for '%s'", buf);
+
+                return *sections;
+            }
+            else if (snprintf(keybuf, sizeof(keybuf), "%s.!%s", key, this->short_hostname) < sizeof(keybuf))
+            {
+                find_sections_buffered(this, section, keybuf, keybuf, args, buf,
+                               sizeof(buf), FALSE, sections);
+
+                if (*sections)
+                {
+                    if ( strcmp(this->short_hostname, strrchr(buf, '.') + 2) != 0 )
+                    {
+                        DBG1(DBG_CFG, "created per hostname inversed key value enumerator for '%s'", buf);
+
+                        return *sections;
+                    }
+                    else
+                    {
+                        DBG1(DBG_CFG, "found per hostname inversed key value enumerator for '%s' but not for me", buf);
+
+                        return NULL;
+                    }
+                }
+            }
+        }
+    }
 
 	if (snprintf(keybuf, sizeof(keybuf), "%s", key) >= sizeof(keybuf))
 	{
@@ -527,8 +583,31 @@ static char *find_value(private_settings_t *this, section_t *section,
             if (kv)
             {
                 value = kv->value;
-
                 DBG1(DBG_CFG, "found per hostname key '%s' = '%s'", buf, value);
+            }
+            else if (snprintf(keybuf, sizeof(keybuf), "%s.!%s", key, this->short_hostname) < sizeof(keybuf))
+            {
+                if (sections)
+                {
+                    array_destroy(sections);
+                    sections = NULL;
+                }
+
+                kv = find_value_buffered(this, section, keybuf, keybuf, args,
+                                         buf, sizeof(buf), FALSE, &sections);
+
+                if (kv)
+                {
+                    if ( strcmp(this->short_hostname, strrchr(buf, '.') + 2) != 0 )
+                    {
+                        value = kv->value;
+                        DBG1(DBG_CFG, "found per hostname inversed key '%s' = '%s'", buf, value);
+                    }
+                    else
+                    {
+                        DBG1(DBG_CFG, "found per hostname inversed key '%s' = '%s' but not for me", buf, value);
+                    }
+                }
             }
         }
     }
